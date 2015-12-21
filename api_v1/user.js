@@ -108,7 +108,7 @@ app.post('/', function(req, res) {
             return;
         } else {
             // if user create successful
-            var expires = moment().add('days', 30).valueOf();
+            var expires = moment().add(30,'days').valueOf();
             // get jwt token 
             var token = jwt.encode({
                 iss: user.userid,
@@ -134,8 +134,13 @@ app.delete('/:userid', function(req, res) {
         return;
     }
     var req_userid = req.params.userid;
-    var decoded_userid = jwt.decode(token, app.get('jwtTokenSecret')).iss;
-    if (decoded_userid == decoded_userid) {
+    var decoded_userid;
+    try {
+        decoded_userid = jwt.decode(token, app.get('jwtTokenSecret')).iss;
+    } catch (err) {
+        console.log(err);
+    }
+    if (decoded_userid && decoded_userid == decoded_userid) {
         // remove user from db
         User.remove({
             userid: req_userid

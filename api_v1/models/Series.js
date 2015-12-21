@@ -51,8 +51,10 @@ SeriesSchema.plugin(autoIncrement.plugin, {
 
 SeriesSchema.pre('save', function(next) {
     var series = this;
-    if (!series.updatedAt)
-    	series.updatedAt = Date.now;
+    if (!series.updatedAt) {
+    	series.updatedAt = Date.now();
+        console.log("update updated" + series.updatedAt);
+    }
     next();
 });
 
