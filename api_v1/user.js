@@ -124,4 +124,35 @@ app.post('/', function(req, res) {
     });
 });
 
+app.delete('/:userid', function(req, res) {
+    var token = req.headers.sessiontoken;
+    if (!token) {
+        var err = new UnauthorizedError("Token not found");
+        res.status(err.code).json({
+            'error': err.message
+        });
+        return;
+    }
+    var req_userid = req.params.userid;
+    var decoded_userid = jwt.decode(token, app.get('jwtTokenSecret')).iss;
+    if (decoded_userid == decoded_userid) {
+        // remove user from db
+        User.remove({
+            userid: req_userid
+        }, function(err, user) {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
+            } else {
+                res.sendStatus(204);
+            }
+        });
+    } else {
+        var err = new UnauthorizedError("Invalid Token");
+        res.status(err.code).json({
+            'error': err.message
+        });
+    }
+});
+
 module.exports = app;
