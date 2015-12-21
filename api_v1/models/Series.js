@@ -19,7 +19,8 @@ var SeriesSchema = new mongoose.Schema({
         required: true
     },
     total: {
-        type: Number
+        type: Number,
+        default: 0
     },
     isPublic: {
         type: Boolean,
@@ -35,7 +36,7 @@ var SeriesSchema = new mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now(),
     },
     updatedAt: {
         type: Date
