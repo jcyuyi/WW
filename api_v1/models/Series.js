@@ -10,6 +10,10 @@ var SeriesSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    seriesId: {
+        type: Number,
+        required: true
+    },
     current: {
         type: Number,
         required: true
