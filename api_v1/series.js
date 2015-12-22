@@ -151,4 +151,36 @@ app.put('/:seriesid', function(req, res) {
         });
 
 });
+
+// delete series
+app.delete('/:seriesid', function(req, res) {
+    var userid = req.userid;
+    if (!userid) {
+        var err = new UnauthorizedError("Invalid Token");
+        res.status(err.code).json({
+            'error': err.message
+        });
+        return;
+    }
+    var seriesid = req.params.seriesid;
+    console.log("delete series... user: " + userid + " ,seriesid: " + seriesid);
+    // remove series from db
+    Series.remove({
+        	createdBy: userid,
+            seriesId: seriesid
+        },
+        function(error, result) {
+            if (error) {
+                console.log(error);
+                var err = new BadRequestError("Invalid parameters");
+                res.status(err.code).json({
+                    'error': err.message
+                });
+            } else {
+            	console.log("delete result:" + result);
+                res.sendStatus(204);
+            }
+        });
+});
+
 module.exports = app;

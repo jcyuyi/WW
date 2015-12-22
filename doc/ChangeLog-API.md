@@ -24,3 +24,7 @@ Change 15.12.21
 
 更新剧集：
 成功更新返回 200 OK ，而不是201
+
+删除剧集：
+要删除的剧集不存在也返回204 NO CONTENT
+参考 [Deleting a resource using http DELETE](http://stackoverflow.com/questions/6439416/deleting-a-resource-using-http-delete)
