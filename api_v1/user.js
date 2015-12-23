@@ -44,7 +44,7 @@ app.get('/', function(req, res) {
 
         // check if user exist
         if (!user) {
-            var err = new UnauthorizedError("Invalid username");
+            var err = new UnauthorizedError("Invalid username or password");
             res.status(err.code).json({
                 'error': err.message
             });
@@ -64,12 +64,12 @@ app.get('/', function(req, res) {
                     exp: expires
                 }, app.get('jwtTokenSecret'));
                 res.json({
-                    token: token,
+                    sessionToken: token,
                     username: user.username,
                     userid: user.userid
                 });
             } else {
-                var err = new UnauthorizedError("Invalid password");
+                var err = new UnauthorizedError("Invalid username or password");
                 res.status(err.code).json({
                     'error': err.message
                 });
@@ -115,7 +115,7 @@ app.post('/', function(req, res) {
                 exp: expires
             }, app.get('jwtTokenSecret'));
             res.json({
-                token: token,
+                sessionToken: token,
                 username: user.username,
                 userid: user.userid
             });
