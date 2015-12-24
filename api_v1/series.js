@@ -9,17 +9,17 @@ var BadRequestError = require('./errors/BadRequestError');
 app.all('*', function(req, res, next) {
     var sessionToken = req.headers.sessiontoken;
     if (!sessionToken) {
-        req.userid = undefined;
+        req.username = undefined;
         console.log("session token not found");
     } else {
         var decoded_userid;
         try {
             decoded_userid = jwt.decode(sessionToken, app.get('jwtTokenSecret')).iss;
             console.log("session token validated! User: " + decoded_userid);
-            req.userid = decoded_userid;
+            req.username = decoded_userid;
         } catch (err) {
             console.log(err);
-            req.userid = undefined;
+            req.username = undefined;
         }
     }
     next();
@@ -27,15 +27,15 @@ app.all('*', function(req, res, next) {
 
 // create series
 app.post('/', function(req, res) {
-    var userid = req.userid;
-    if (!userid) {
+    var username = req.username;
+    if (!username) {
     	var err = new UnauthorizedError("Invalid Token");
         res.status(err.code).json({
             'error': err.message
         });
         return;
     }
-    console.log("create series... user: " + userid);
+    console.log("create series... user: " + username);
     // get post data
     var name = req.body.name;
     var current = req.body.current;
@@ -48,7 +48,7 @@ app.post('/', function(req, res) {
         total:total,
         isPublic:isPublic,
         note:note,
-        createdBy:userid
+        createdBy:username
     });
     series.save(function(error) {
         if (error) {
@@ -67,24 +67,52 @@ app.post('/', function(req, res) {
 
 // get series list
 app.get('/', function(req, res) {
-    var userid = req.userid;
-    if (!userid) {
-        // return all public series
-        Series.find({
-            isPublic: true
-        }).sort({
-            updatedAt: -1
-        }).exec(
-            function(err, seriesList) {
-                if (err) {
-                	res.status(500);
-                }
-                res.status(200).json(seriesList);
-            });
+    var username = req.username;
+    if (!username) {
+        // return limited public series default num
+        var limit = req.query.limit
+        if (!limit) {
+        	limit = 7
+        } else {
+        	limit = parseInt(limit)
+        }
+        var offset = req.query.offset
+         if (!offset) {
+        	offset = 0
+        } else {
+        	offset = parseInt(offset)
+        }
+        var createdBy = req.query.createdBy
+        if (createdBy) {
+            Series.find({
+                isPublic: true,
+                createdBy:createdBy
+            }).sort({
+                updatedAt: -1
+            }).exec(
+                function(err, seriesList) {
+                    if (err) {
+                        res.status(500);
+                    }
+                    res.status(200).json(seriesList);
+                });
+        } else {
+            Series.find({
+                isPublic: true
+            }).sort({
+                updatedAt: -1
+            }).skip(offset).limit(limit).exec(
+                function(err, seriesList) {
+                    if (err) {
+                        res.status(500);
+                    }
+                    res.status(200).json(seriesList);
+                });
+        }
     } else {
     	// return only for current user
     	Series.find({
-            createdBy:userid
+            createdBy:username
         }).sort({
             updatedAt: -1
         }).exec(
@@ -99,8 +127,8 @@ app.get('/', function(req, res) {
 
 // update series
 app.put('/:seriesid', function(req, res) {
-	var userid = req.userid;
-    if (!userid) {
+	var username = req.username;
+    if (!username) {
     	var err = new UnauthorizedError("Invalid Token");
         res.status(err.code).json({
             'error': err.message
@@ -108,11 +136,11 @@ app.put('/:seriesid', function(req, res) {
         return;
     }
     var seriesid = req.params.seriesid;
-    console.log("update/put series... user: " + userid + " ,seriesid: " + seriesid);
+    console.log("update/put series... user: " + username + " ,seriesid: " + seriesid);
     // find series and update
     Series.findOne({
         seriesId: seriesid,
-        createdBy: userid
+        createdBy: username
         },
         function(err, series) {
             console.log("Find series to update: " + series);
@@ -154,8 +182,8 @@ app.put('/:seriesid', function(req, res) {
 
 // delete series
 app.delete('/:seriesid', function(req, res) {
-    var userid = req.userid;
-    if (!userid) {
+    var username = req.username;
+    if (!username) {
         var err = new UnauthorizedError("Invalid Token");
         res.status(err.code).json({
             'error': err.message
@@ -163,10 +191,10 @@ app.delete('/:seriesid', function(req, res) {
         return;
     }
     var seriesid = req.params.seriesid;
-    console.log("delete series... user: " + userid + " ,seriesid: " + seriesid);
+    console.log("delete series... user: " + username + " ,seriesid: " + seriesid);
     // remove series from db
     Series.remove({
-        	createdBy: userid,
+        	createdBy: username,
             seriesId: seriesid
         },
         function(error, result) {

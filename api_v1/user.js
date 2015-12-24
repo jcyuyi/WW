@@ -60,13 +60,12 @@ app.get('/', function(req, res) {
                 var expires = moment().add('days', 30).valueOf();
                 // get jwt token 
                 var token = jwt.encode({
-                    iss: user.userid,
+                    iss: user.username,
                     exp: expires
                 }, app.get('jwtTokenSecret'));
                 res.json({
                     sessionToken: token,
                     username: user.username,
-                    userid: user.userid
                 });
             } else {
                 var err = new UnauthorizedError("Invalid username or password");
@@ -111,20 +110,19 @@ app.post('/', function(req, res) {
             var expires = moment().add(30,'days').valueOf();
             // get jwt token 
             var token = jwt.encode({
-                iss: user.userid,
+                iss: user.username,
                 exp: expires
             }, app.get('jwtTokenSecret'));
             res.json({
                 sessionToken: token,
                 username: user.username,
-                userid: user.userid
             });
             console.log("user created:", user);
         }
     });
 });
 
-app.delete('/:userid', function(req, res) {
+app.delete('/:username', function(req, res) {
     var token = req.headers.sessiontoken;
     if (!token) {
         var err = new UnauthorizedError("Token not found");
@@ -133,17 +131,17 @@ app.delete('/:userid', function(req, res) {
         });
         return;
     }
-    var req_userid = req.params.userid;
-    var decoded_userid;
+    var req_username = req.params.username;
+    var decoded_username;
     try {
-        decoded_userid = jwt.decode(token, app.get('jwtTokenSecret')).iss;
+        decoded_username = jwt.decode(token, app.get('jwtTokenSecret')).iss;
     } catch (err) {
         console.log(err);
     }
-    if (decoded_userid && decoded_userid == decoded_userid) {
+    if (decoded_username && decoded_username == req_username) {
         // remove user from db
         User.remove({
-            userid: req_userid
+            username: decoded_username
         }, function(err, user) {
             if (err) {
                 console.log(err);

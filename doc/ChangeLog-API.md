@@ -28,3 +28,11 @@ Change 15.12.21
 删除剧集：
 要删除的剧集不存在也返回204 NO CONTENT
 参考 [Deleting a resource using http DELETE](http://stackoverflow.com/questions/6439416/deleting-a-resource-using-http-delete)
+
+Change 12.24
+-----
+取消userid字段，全部使用username代替
+
+查询剧集:
+默认返回有限条结果
+如果指定createdBy则返回所有该用户的公开条目
