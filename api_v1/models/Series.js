@@ -10,12 +10,17 @@ var SeriesSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    seriesId: {
+        type: Number,
+        required: true
+    },
     current: {
         type: Number,
         required: true
     },
     total: {
-        type: Number
+        type: Number,
+        default: 0
     },
     isPublic: {
         type: Boolean,
@@ -31,7 +36,7 @@ var SeriesSchema = new mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now(),
     },
     updatedAt: {
         type: Date
@@ -47,8 +52,10 @@ SeriesSchema.plugin(autoIncrement.plugin, {
 
 SeriesSchema.pre('save', function(next) {
     var series = this;
-    if (!series.updatedAt)
-    	series.updatedAt = Date.now;
+    if (!series.updatedAt) {
+    	series.updatedAt = Date.now();
+        console.log("update updated" + series.updatedAt);
+    }
     next();
 });
 

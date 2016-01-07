@@ -44,7 +44,7 @@ app.get('/', function(req, res) {
 
         // check if user exist
         if (!user) {
-            var err = new UnauthorizedError("Invalid username");
+            var err = new UnauthorizedError("Invalid username or password");
             res.status(err.code).json({
                 'error': err.message
             });
@@ -60,16 +60,15 @@ app.get('/', function(req, res) {
                 var expires = moment().add('days', 30).valueOf();
                 // get jwt token 
                 var token = jwt.encode({
-                    iss: user.userid,
+                    iss: user.username,
                     exp: expires
                 }, app.get('jwtTokenSecret'));
                 res.json({
-                    token: token,
+                    sessionToken: token,
                     username: user.username,
-                    userid: user.userid
                 });
             } else {
-                var err = new UnauthorizedError("Invalid password");
+                var err = new UnauthorizedError("Invalid username or password");
                 res.status(err.code).json({
                     'error': err.message
                 });
@@ -108,20 +107,55 @@ app.post('/', function(req, res) {
             return;
         } else {
             // if user create successful
-            var expires = moment().add('days', 30).valueOf();
+            var expires = moment().add(30,'days').valueOf();
             // get jwt token 
             var token = jwt.encode({
-                iss: user.userid,
+                iss: user.username,
                 exp: expires
             }, app.get('jwtTokenSecret'));
             res.json({
-                token: token,
+                sessionToken: token,
                 username: user.username,
-                userid: user.userid
             });
             console.log("user created:", user);
         }
     });
+});
+
+app.delete('/:username', function(req, res) {
+    var token = req.headers.sessiontoken;
+    if (!token) {
+        var err = new UnauthorizedError("Token not found");
+        res.status(err.code).json({
+            'error': err.message
+        });
+        return;
+    }
+    var req_username = req.params.username;
+    var decoded_username;
+    try {
+        decoded_username = jwt.decode(token, app.get('jwtTokenSecret')).iss;
+    } catch (err) {
+        console.log(err);
+    }
+    if (decoded_username && decoded_username == req_username) {
+        // remove user from db
+        User.remove({
+            username: decoded_username
+        }, function(err, user) {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
+            } else {
+                res.sendStatus(204);
+            }
+        });
+    } else {
+        var err = new UnauthorizedError("Invalid Token");
+        res.status(err.code).json({
+            'error': err.message
+        });
+    }
 });
 
 module.exports = app;
