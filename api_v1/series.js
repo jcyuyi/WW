@@ -93,6 +93,7 @@ app.get('/', function(req, res) {
                 function(err, seriesList) {
                     if (err) {
                         res.status(500);
+                        return;
                     }
                     res.status(200).json(seriesList);
                 });
@@ -105,6 +106,7 @@ app.get('/', function(req, res) {
                 function(err, seriesList) {
                     if (err) {
                         res.status(500);
+                        return;
                     }
                     res.status(200).json(seriesList);
                 });
@@ -119,6 +121,7 @@ app.get('/', function(req, res) {
             function(err, seriesList) {
                 if (err) {
                 	res.status(500);
+                    return;
                 }
                 res.status(200).json(seriesList);
             });
@@ -151,6 +154,19 @@ app.put('/:seriesid', function(req, res) {
                 });
             } else { // update
                 // get and set fields
+                var updatedAt = req.body.updatedAt;
+                if (updatedAt) {
+                    var oldDate = new Date(series.updatedAt);
+                    var newDate = new Date(updatedAt);
+                    // no need to update an old series
+                    if (newDate < oldDate) {
+                         console.log("No need to update");
+                         res.status(200).json(series);
+                         return;
+                    }
+                }
+                series.updatedAt = updatedAt; // if not set then use Now
+
                 var name = req.body.name;
                 if (name) series.name = name;
                 var current = req.body.current;
@@ -161,8 +177,7 @@ app.put('/:seriesid', function(req, res) {
                 if (isPublic) series.isPublic = isPublic;
                 var note = req.body.note;
                 if (note) series.note = note;
-                var updatedAt = req.body.updatedAt;
-                series.updatedAt = updatedAt; // if not set then use Now
+
                 // save update
                 series.save(function(error) {
                     if (error) {
