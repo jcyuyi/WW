@@ -23,6 +23,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // main site app
+app.use(express.static('./public'));
 app.use('/', routes);
 // restful api app
 app.use('/api_v1', api_v1_app);
